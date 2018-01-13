@@ -1,5 +1,5 @@
 %%
-% Create DataBase in PostgreSQL 10 for stock history.
+% Create Table in PostgreSQL 10 for stock history.
 %
 % Matlab 2017a w/ Database Tool Box.
 %
@@ -18,8 +18,12 @@
 conn = database('<DB_Name>','<UserName>','<PassWord>','Vendor','PostgreSQL','Server','<IP_Address>','PortNumber',5432);
 
 %%
-% Setup the SQL Command, Execute it, Display Results.
-sqlquery = ['CREATE TABLE <Ticker>(RecordNumber SERIAL,DateValue DATE, Close DECIMAL, Volume INT, Open DECIMAL, High DECIMAL, Low DECIMAL)'];
+% Uncomment to Create Table.
+%sqlquery = ['CREATE TABLE <Ticker>(RecordNumber SERIAL,DateValue DATE, Close DECIMAL, Volume INT, Open DECIMAL, High DECIMAL, Low DECIMAL)'];
+
+%%
+%  Uncomment to Drop Table.
+%sqlquery = ['DROP TABLE <Ticker>'];
 
 curs = exec(conn,sqlquery);
 
