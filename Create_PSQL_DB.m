@@ -27,8 +27,10 @@ conn = database('<DB_Name>','<UserName>','<PassWord>','Vendor','PostgreSQL','Ser
 
 curs = exec(conn,sqlquery);
 
+%%
+% Close conenctions.
+%
 close (conn);
-
 display (curs);
 
 %
