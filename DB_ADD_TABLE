@@ -1,0 +1,71 @@
+%%
+% Read's a text file of tickers and creates a table for each ticker.
+%
+% Matlab 2017a w/ Database Tool Box.
+%
+% Copyright (c) 2018 Ken Segura.
+%
+% Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+% The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+%Clear !
+clear
+
+format bank;
+
+%%
+% Make sure you have JDBC loaded.
+% javaclasspath('postgresql-42.1.4.jar'); 
+
+%%
+%
+% Open the text file that contains one ticker symbol per line
+% two
+% googl
+% intc
+
+fileIDTicker = fopen('tickers.txt','r');
+
+while ~feof(fileIDTicker)
+    
+    InputTextTicker = textscan(fileIDTicker,'%s[\n\r]',1);
+
+    TableTicker = InputTextTicker{1,1};
+
+%%
+% Open DB connection
+
+conn = database('<DB_NAME>','<USER>','<PASSWORD>','Vendor','PostgreSQL','Server','<IP_ADDRESS>?','PortNumber',5432);
+
+%%
+%
+% Create standard Date, Open, High, Low, Close, Volume table.
+%
+    sqlqueryA = 'CREATE TABLE';
+    sqlqueryB = '(RecordNumber SERIAL, DateValue DATE, Open DECIMAL, High DECIMAL,  Low DECIMAL, Close DECIMAL, Volume INT)';
+    sqlqueryC = [sqlqueryA  TableTicker sqlqueryB];
+    sqlquery = strjoin(sqlqueryC);
+
+
+%%
+%
+% Drop the table.
+%
+    %sqlqueryD = 'DROP TABLE';
+    %sqlqueryE = [sqlqueryD  TableTicker];
+    %sqlquery = strjoin(sqlqueryE);
+
+    disp(sqlquery);
+
+    curs = exec(conn,sqlquery);
+    disp (curs);
+
+    clear InputTextTicker;
+    clear TableTicker;
+    clear sqlquery;
+
+    close (conn);
+end
+
+fclose(fileIDTicker);
