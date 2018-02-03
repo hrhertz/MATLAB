@@ -1,0 +1,146 @@
+%%
+% Get 1 year history from IB TWS.
+%
+% You can save it to a .mat file or load it into a database table.
+% The dates and table names have to be set by hand for now.
+% You can just pull the data and save it to a .mat file for later.
+% You can just load .mat files of history to load in to DB.
+% Comment out the part of the code you don't want to run.
+%
+% Matlab 2017a w/ Database and Trading Tool Box.
+%
+% Copyright (c) 2018 Ken Segura.
+%
+% Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+% The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+%%
+% Make sure you have JDBC loaded.
+% javaclasspath('postgresql-42.1.4.jar'); 
+
+%%
+% Clear !
+clear
+
+%%
+%
+format bank;
+
+%%
+% TWS
+%
+% Numeric representation of a date
+% Open price
+% High price
+% Low price
+% Close price
+% Volume
+% Bar count
+% Weighted average price
+% Flag indicating if there are gaps in the bar
+
+%%
+%
+%ib = ibtws('127.0.0.1',7496);
+%ib.Handle;
+
+%ibContract = ib.Handle.createContract;
+%ibContract.symbol = 'TWO';
+%ibContract.secType = 'STK';
+%ibContract.exchange = 'SMART';
+%ibContract.primaryExchange = 'IEX';
+%ibContract.currency = 'USD';
+
+startDateString = ['01-Jan-2017'];
+endDateString = ['31-Dec-2017'];
+startDateNumber = datenum(startDateString);
+endDateNumber = datenum(endDateString);
+
+%exData = history(ib,ibContract,startDateNumber,endDateNumber,'TRADES','1 DAY'); 
+
+%disp(startDateNumber);
+%disp(endDateNumber);
+
+%close(ib);
+
+%%
+% Save or Load exData.
+
+%save('Hist_2017.mat', 'exData');
+
+%load 'Hist_2017.mat';
+
+%%
+% Connect to DB
+% conn = database('<DB_NAME>','<USER>','<PASSWORD>','Vendor','PostgreSQL','Server','<IP>','PortNumber',5432);
+
+%%
+% 
+% DROP THE TABLE.
+%
+% sqlquery = ['DROP TABLE two'];
+%
+% CREATE THE TABLE.
+%
+% sqlquery = ['CREATE TABLE two(RecordNumber SERIAL, DateValue DATE, Open DECIMAL, High DECIMAL, Low DECIMAL, Close DECIMAL, Volume INT, Barcount INT, Wap DECIMAL, Gaps INT)'];
+% curs = exec(conn,sqlquery);
+
+% close (curs);
+% close (conn);
+
+%%
+%
+% For 1 year of history the matrix is 251x9
+% so we will set a loop for 1:251.
+%
+for ii = 1:251
+
+%%
+%
+dateVar = d(ii,1);
+openVar = d(ii,2);
+highVar = d(ii,3);
+lowVar = d(ii,4);
+closeVar = d(ii,5);
+volumeVar = d(ii,6);
+barcountVar = d(ii,7);
+wapVar = d(ii,8);
+gapsVar = d(ii,9);
+
+tableName = {'two'};
+disp (tableName);
+
+colNames = {'DateValue';'Open';'High';'Low';'Close';'Volume';'Barcount';'Wap';'Gaps'};
+exData = {dateVar, openVar, highVar, lowVar, closeVar, volumeVar, barcountVar, wapVar, gapsVar};
+
+disp (exData);
+
+%%
+% Connect to DB and insert data.
+conn = database('<DB_NAME>','<USER>','<PASSWORD>','Vendor','PostgreSQL','Server','<IP>','PortNumber',5432);;
+
+insert(conn, 'two', {'DateValue';'Open';'High';'Low';'Close';'Volume';'Barcount';'Wap';'Gaps'}, exData);
+
+close (conn);
+
+%%
+% End of LOOP.
+end
+
+%%
+% Connect to DB and pull all entries for the ticker symbol and display it.
+%
+% conn = database('<DB_NAME>','<USER>','<PASSWORD>','Vendor','PostgreSQL','Server','<IP>','PortNumber',5432);
+
+curs = exec(conn,'SELECT * FROM two');
+curs = fetch(curs);
+disp (curs);
+disp (curs.Data);
+
+close (curs);
+close (conn);
+
+%%
+%
+
