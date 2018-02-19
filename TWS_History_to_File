@@ -1,0 +1,96 @@
+%%
+% Create Table in PostgreSQL 10 for TWS stock history.
+%
+% Matlab 2017a w/ Database Tool Box.
+%
+% Copyright (c) 2018 Ken Segura.
+%
+% You need a text file with ticker symbols in it.
+%
+% Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+% The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+%%
+%
+clear;
+
+format bank;
+
+pause('on');
+
+%%
+% Text File with ticker symbols.
+fileIDTicker = fopen('tickers.txt','r');
+
+
+    %%
+    % TWS
+    %
+    % Numeric representation of a date
+    % Open price
+    % High price
+    % Low price
+    % Close price
+    % Volume
+    % Bar count
+    % Weighted average price
+    % Flag indicating if there are gaps in the bar
+
+    %%
+    %
+    ib = ibtws('127.0.0.1',7496);
+    ib.Handle;
+
+    ibContract = ib.Handle.createContract;
+    ibContract.secType = 'STK';
+    ibContract.exchange = 'SMART';
+    ibContract.primaryExchange = 'IEX';
+    ibContract.currency = 'USD';
+    
+    %%
+    % Dates to get data from.
+    % Max 1 year.
+
+    startDateString = ['01-Jan-2017'];
+    endDateString = ['31-Dec-2017'];
+    startDateNumber = datenum(startDateString);
+    endDateNumber = datenum(endDateString);
+
+    
+while ~feof(fileIDTicker)
+InputTextTicker = textscan(fileIDTicker,'%s[\n\r]',1);
+TableTicker = InputTextTicker{1,1};
+TableTickerFileName = char(TableTicker);
+    
+    ibContract.symbol = TableTickerFileName; 
+
+    %%
+    %
+    exData = history(ib,ibContract,startDateNumber,endDateNumber,'TRADES','1 DAY'); 
+
+
+    %%
+    % Save data as .mat file
+    fileName = sprintf('%s.mat',TableTickerFileName);
+    save(fileName, 'exData');
+
+    disp (fileName);
+
+    % Can only query 60 times in 10 minutes. So we pause.
+    disp('Paused');
+    n = 11;
+    pause(n);
+
+    %Clear the varaibles.
+    clear exData;
+    clear TableTickerFileName;
+
+end;
+
+%%
+% We are done. Close the connection and the file.
+
+close(ib);
+
+fclose(fileIDTicker);
